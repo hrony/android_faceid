@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  UVCCamera
+  ~  library and sample to access to UVC web camera on non-rooted Android device
+  ~
+  ~ Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  ~  All files in the folder are under this Apache License, Version 2.0.
+  ~  Files in the libjpeg-turbo, libusb, libuvc, rapidjson folder
+  ~  may have a different license, see the respective files.
+  -->
+<resources>
+    <string name="app_name">VyagooCamera</string>
+    <string name="select">选择摄像头</string>
+    <string name="camera">Camera</string>
+    <string name="refresh">刷新</string>
+    <string name="no_device">No USB camera found</string>
+    <string name="quit">退出</string>
+    <string name="select_camera">选择Camera</string>
+    <string name="active">激活</string>
+    <string name="cleandata">清除数据</string>
+    <string name="enter_reg">进入注册模式</string>
+    <string name="quit_reg">退出注册模式</string>
+    <string name="input_name">请输入名字</string>
+    <string name="reg">注册</string>
+    <string name="reg_in">已进入注册模式</string>
+    <string name="no_check_face">未检测到人脸，请移动至框内</string>
+    <string name="no_face">未检测到人脸，请移动至框内</string>
+    <string name="have_face">检测到人脸，请保持</string>
+    <string name="quit_app">再点击一次退出应用</string>
+    <string name="clean_data_sucess">清除数据成功 res=</string>
+    <string name="active_success">激活成功 res=</string>
+    <string name="no_face_pleace">人脸未在框中,请调整!</string>
+    <string name="reg_success">注册成功 res=</string>
+    <string name="enter_fail">进入失败</string>
+    <string name="quit_fail">退出失败</string>
+    <string name="woman">-女</string>
+    <string name="man">-男</string>
+    <string name="unkown">-未知</string>
+    <string name="id_no_exit">-id不存在</string>
+    <string name="smile">-微笑</string>
+    <string name="normal">-正常</string>
+    <string name="big_smial">-大笑</string>
+    <string name="sad">-难过</string>
+</resources>

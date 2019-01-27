@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~  UVCCamera
+  ~  library and sample to access to UVC web camera on non-rooted Android device
+  ~
+  ~ Copyright (c) 2014-2017 saki t_saki@serenegiant.com
+  ~
+  ~  Licensed under the Apache License, Version 2.0 (the "License");
+  ~  you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  ~  All files in the folder are under this Apache License, Version 2.0.
+  ~  Files in the libjpeg-turbo, libusb, libuvc, rapidjson folder
+  ~  may have a different license, see the respective files.
+  -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="MergeRootFrame" >
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.vyagoo.faceid.widget.SimpleUVCCameraTextureView
+            android:id="@+id/UVCCameraTextureView1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+        <com.vyagoo.faceid.widget.MySufaceView
+            android:id="@+id/sf_kuang"
+            android:background="@color/TRANSPARENT"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/facerect"
+        android:background="@mipmap/regist_bg"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerInParent="true" />
+
+    <TextView
+        android:id="@+id/tv_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/WHITE"
+        android:textSize="26dp"
+        android:visibility="gone"
+        android:layout_marginLeft="60dp"
+        android:text="软件版本：1.0"/>
+
+    <ImageButton
+        android:id="@+id/camera_button"
+        android:layout_width="@dimen/button_size"
+        android:layout_height="@dimen/button_size"
+        android:contentDescription="@string/camera"
+        android:visibility="gone"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_menu_camera" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <Button
+            android:layout_margin="20dp"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:background="@drawable/btn_sure"
+            android:onClick="selectCamera"
+            android:text="@string/select_camera"/>
+
+        <Button
+            android:layout_margin="20dp"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:background="@drawable/btn_sure"
+            android:onClick="quit"
+            android:text="@string/quit"/>
+
+
+        <Button
+            android:layout_margin="20dp"
+            android:id="@+id/btn_active"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:background="@drawable/btn_sure"
+            android:onClick="active"
+            android:text="@string/active"/>
+
+        <Button
+            android:layout_margin="20dp"
+            android:id="@+id/btn_cleandata"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:visibility="gone"
+            android:background="@drawable/btn_sure"
+            android:onClick="deleteDate"
+            android:text="@string/cleandata"/>
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_gravity="right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+
+        <Button
+            android:layout_margin="20dp"
+            android:id="@+id/btn_entereg"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:background="@drawable/btn_sure"
+            android:onClick="register"
+            android:text="@string/enter_reg"/>
+        <Button
+            android:layout_margin="20dp"
+            android:id="@+id/btn_exitreg"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:visibility="gone"
+            android:background="@drawable/btn_sure"
+            android:onClick="unregister"
+            android:text="@string/quit_reg"/>
+
+        <EditText
+            android:id="@+id/et_name"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="20dp"
+            android:hint="@string/input_name"
+            android:gravity="center"
+            android:text="李雷"
+            android:visibility="gone"
+            android:textColor="@color/RED" />
+
+        <Button
+            android:layout_margin="20dp"
+            android:id="@+id/btn_reg"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:visibility="gone"
+            android:background="@drawable/btn_sure"
+            android:onClick="registering"
+            android:text="@string/reg"/>
+
+
+
+
+        <Button
+            android:layout_margin="20dp"
+            android:layout_width="120dp"
+            android:layout_height="35dp"
+            android:visibility="gone"
+            android:background="@drawable/btn_sure"
+            android:onClick="otasendfile"
+            android:text="ota"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:textSize="22.0sp"
+            android:textColor="@color/colorPrimary"
+            android:id="@+id/entertextview"
+            android:visibility="invisible"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reg_in"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:textSize="22.0sp"
+            android:textColor="#ffff0000"
+            android:id="@+id/entertextviewtip"
+            android:visibility="invisible"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_check_face"
+            android:layout_below="@id/entertextview"
+            android:layout_centerHorizontal="true" />
+    </LinearLayout>
+
+
+</FrameLayout>
