@@ -164,14 +164,29 @@ public class api {
 	static native int native_activeDevice();
 
 	static native int native_sendOtaFile(String path);
+	static native int native_sendFaceidDBFile(String path);
+	static native int native_receiveFaceidDBFile(String path);
 	static native int native_isIDReg(int id);
 
 	public int activeDevice(){
 		return native_activeDevice();
 	}
+	public int rebootDevice() {
+		native_rebootDevice();
+	}
 	public int sendOtaFile(String path){
 		Log.e("xxxx","path = "+path);
 		return native_sendOtaFile(path);
+	}
+	/*faceid.db*/
+	public int sendFaceidDBFile(String path){
+		Log.e("xxxx","path = "+path);
+		return native_sendFaceidDBFile(path);
+	}
+	/*faceid.db*/
+	public int receiveFaceidDBFile(String path){
+		Log.e("xxxx","path = "+path);
+		return native_receiveFaceidDBFile(path);
 	}
 
 	public int isIDReg(int id){
