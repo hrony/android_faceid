@@ -73,11 +73,17 @@
 #define DEVICE_OTA_FILE				24
 #define DEVICE_IS_REG				25
 #define DEVICE_IS_ACTIVATE 			26
-
+#define DEVICE_GET_FACES_INFO_EXT 	27
+#define DEVICE_SET_PHOTO_FILE		28
+#define DEVICE_SET_FACETRACK_STATE	29
+#define DEVICE_DEC_FACETRACK_JPEG	30
+#define	DEVICE_GET_FACEID_DB_FILE	31
+#define DEVICE_SET_FACEID_DB_FILE	32
 
 #define DEVICE_COMM_SERVICE_INT_LEN 	10
 #define DEVICE_COMM_SERVICE_CHAR_LEN	256
 #define RSFT_MAX_FACE_NUM 10
+#define FACE_RECOGNITION_FEATURE_DIMENSION 512
 
 struct usb_comm_protocol {
 	int magic;
@@ -105,5 +111,16 @@ struct usb_comm_protocol_f {
 
 };
 
+struct usb_comm_protocol_f_ext {
+	int magic;
+	int	num;
+	int ids[RSFT_MAX_FACE_NUM];
+	struct face_rect rect[RSFT_MAX_FACE_NUM];
+	int age[RSFT_MAX_FACE_NUM];
+	int attention[RSFT_MAX_FACE_NUM];
+	int emotion[RSFT_MAX_FACE_NUM];
+	int gender[RSFT_MAX_FACE_NUM];
+	float fr_feature[RSFT_MAX_FACE_NUM][FACE_RECOGNITION_FEATURE_DIMENSION];
+};
 
 #endif

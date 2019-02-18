@@ -20,6 +20,7 @@ struct comm_service_handle {
 	pthread_t comm_service_thread_tid;
 	int comm_service_thread_exit;
 	struct usb_comm_protocol_f ucpf;
+	struct usb_comm_protocol_f_ext ucpf_ext;
 	int call_back_freq ;
 	void (*face_detect_callback)(int event);
 	void (*body_detect_callback)(int event);
@@ -57,6 +58,214 @@ int comm_device_isIDReg(int id){
 	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
 	ret = ucp_reply.param[2];//result
 	return ret;
+}
+
+int comm_device_receiveFaceidDBFile(char *FaceidDBPath){
+	struct usb_comm_protocol ucp_reply;
+	int ret = 0;
+	int totalsize = 0;
+	int num = 0;
+	FILE *file = NULL;
+	unsigned long filesize = 0;
+	int start = 0;
+	LOG("comm_device_receiveFaceidDBFile:%s\n", FaceidDBPath);
+	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
+
+	if (FaceidDBPath == NULL){
+        LOG("FaceidDB path is null\n");
+		return -1;
+	}
+//	if (access(PhotoPath, R_OK) == 0){
+	file = fopen(FaceidDBPath, "wb");
+	if (file < 0) {
+        LOG("open Photofile %s fail ret:%d\n", FaceidDBPath, file);
+		return -2;
+	} else {
+	    fseek(file, 0, SEEK_SET);
+		//filesize = get_file_size(FaceidDBPath);
+		//printf("%s,l:%d,filesize:%d\n", __FUNCTION__, __LINE__, filesize);
+		while(1){
+			//LOG("filesize:%d, send size:%d, ret:%d\n", filesize, totalsize, ret);
+            ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
+			ucp_reply.param[0] = DEVICE_GET_FACEID_DB_FILE;
+			ucp_reply.param[1] = 3;//para num
+			ucp_reply.param[2] = 0;//file offset
+			ucp_reply.param[3] = 0; //buffer size
+			if (start == 0) {
+				ucp_reply.param[4] = -1; //-1 start flag
+				start =1;
+			} else {
+				ucp_reply.param[4] = 0; //0 transfer flag
+			}
+retry:
+			ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
+			printf("%s,l:%d,param2:%d,param3:%d,param4:%d\n",\
+						__FUNCTION__, __LINE__, ucp_reply.param[2], ucp_reply.param[3], ucp_reply.param[4]);
+			if (ret < 0) {
+				num++;
+				printf("receive db file fail,usb transfer ret:%d, retry num:%d\n", ret, num);
+				if (num > 5){
+					fclose(file);
+					file = NULL;
+					return -1;
+				}
+				goto retry;
+			}
+			printf("%s,l:%d,ret:%d, ucp_reply.param[2]:%d, ucp_reply.param[3]:%d, ucp_reply.param[4]:%d\n",\
+				__FUNCTION__, __LINE__, ret, ucp_reply.param[2], ucp_reply.param[3], ucp_reply.param[4]);
+			ret = fwrite(ucp_reply.buffer, 1, ucp_reply.param[3],file);
+			totalsize += ret;
+			num = 0;
+			ret = ucp_reply.param[2];//result
+			if (ret < 0){
+                LOG("receive db file fail ret:%d\n", ret);
+				fclose(file);
+				return -1;
+			}
+			if (ucp_reply.param[4] == 1) {//end file flag
+				printf("%s,l:%d,totalsize:%d,ret:%d,ucp_reply.param[3]:%d\n", __FUNCTION__, __LINE__,totalsize, ret, ucp_reply.param[3]);
+                break;
+			}
+		}
+		fclose(file);
+        LOG("receive facedb file success\n");
+	}
+
+	return 0;
+}
+
+int comm_device_sendFacedbFile(char *FacedbPath){
+	struct usb_comm_protocol ucp_reply;
+	int ret = 0;
+	int totalsize = 0;
+	int num = 0;
+	FILE *file = NULL;
+	unsigned long filesize = 0;
+
+	LOG("comm_device_sendPhotoFile:%s\n", FacedbPath);
+	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
+
+	if (FacedbPath == NULL){
+        LOG("Facedb path is null\n");
+		return -1;
+	}
+//	if (access(PhotoPath, R_OK) == 0){
+	file = fopen(FacedbPath, "rb");
+	if (file < 0) {
+        LOG("open Facedbfile %s fail ret:%d\n", FacedbPath, file);
+		return -2;
+	} else {
+	    fseek(file, 0, SEEK_SET);
+		filesize = get_file_size(FacedbPath);
+		printf("%s,l:%d,ucp_reply.buffer:%p,filesize:%d\n", __FUNCTION__, __LINE__,ucp_reply.buffer, filesize);
+		while(1){
+		    ret = fread(ucp_reply.buffer, 1,DEVICE_COMM_SERVICE_CHAR_LEN,file);
+			totalsize += ret;
+			//LOG("filesize:%d, send size:%d, ret:%d\n", filesize, totalsize, ret);
+            ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
+			ucp_reply.param[0] = DEVICE_SET_FACEID_DB_FILE;
+			ucp_reply.param[1] = 3;//para num
+			ucp_reply.param[2] = totalsize - ret;//file offset
+			ucp_reply.param[3] = ret; //buffer size
+			if (totalsize == filesize){
+				ucp_reply.param[4] = 1;//file end
+			} else {
+				ucp_reply.param[4] = 0;
+			}
+retry:
+			ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
+			if (ret < 0) {
+				num++;
+				LOG("send Facedb file fail,usb transfer ret:%d, retry num:%d\n", ret, num);
+				if (num > 5){
+					fclose(file);
+					file = NULL;
+					return -1;
+				}
+				goto retry;
+			}
+			num = 0;
+			ret = ucp_reply.param[2];//result
+			if (ret < 0){
+                LOG("send Facedb file fail ret:%d\n", ret);
+				fclose(file);
+				return -1;
+			}
+			if (totalsize == filesize)
+                break;
+		}
+		fclose(file);
+        LOG("send Facedb file success\n");
+	}
+
+	return 0;
+}
+
+int comm_device_sendPhotoFile(char *PhotoPath){
+	struct usb_comm_protocol ucp_reply;
+	int ret = 0;
+	int totalsize = 0;
+	int num = 0;
+	FILE *file = NULL;
+	unsigned long filesize = 0;
+
+	LOG("comm_device_sendPhotoFile:%s\n", PhotoPath);
+	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
+
+	if (PhotoPath == NULL){
+        LOG("photo path is null\n");
+		return -1;
+	}
+//	if (access(PhotoPath, R_OK) == 0){
+	file = fopen(PhotoPath, "rb");
+	if (file < 0) {
+        LOG("open Photofile %s fail ret:%d\n", PhotoPath, file);
+		return -2;
+	} else {
+	    fseek(file, 0, SEEK_SET);
+		filesize = get_file_size(PhotoPath);
+		printf("%s,l:%d,ucp_reply.buffer:%p,filesize:%d\n", __FUNCTION__, __LINE__,ucp_reply.buffer, filesize);
+		while(1){
+		    ret = fread(ucp_reply.buffer, 1,DEVICE_COMM_SERVICE_CHAR_LEN,file);
+			totalsize += ret;
+			//LOG("filesize:%d, send size:%d, ret:%d\n", filesize, totalsize, ret);
+            ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
+			ucp_reply.param[0] = DEVICE_SET_PHOTO_FILE;
+			ucp_reply.param[1] = 3;//para num
+			ucp_reply.param[2] = totalsize - ret;//file offset
+			ucp_reply.param[3] = ret; //buffer size
+			if (totalsize == filesize){
+				ucp_reply.param[4] = 1;//file end
+			} else {
+				ucp_reply.param[4] = 0;
+			}
+retry:
+			ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
+			if (ret < 0) {
+				num++;
+				LOG("send photo file fail,usb transfer ret:%d, retry num:%d\n", ret, num);
+				if (num > 5){
+					fclose(file);
+					file = NULL;
+					return -1;
+				}
+				goto retry;
+			}
+			num = 0;
+			ret = ucp_reply.param[2];//result
+			if (ret < 0){
+                LOG("send photo file fail ret:%d\n", ret);
+				fclose(file);
+				return -1;
+			}
+			if (totalsize == filesize)
+                break;
+		}
+		fclose(file);
+        LOG("send photo file success\n");
+	}
+
+	return 0;
 }
 
 int comm_device_sendOtaFile(char *OtaPath){
@@ -394,7 +603,24 @@ int comm_device_face_get_emotion(int index){
 	}
 	return comm_handle.ucpf.emotion[index];
 }
-			
+
+int comm_device_face_get_fr_feature(int index, float *feature){
+int j = 0;
+	LOG("comm_device_face_get_fr_feature\n");
+	if (index >= comm_handle.ucpf_ext.num) {
+		return -1;
+	}
+
+//	printf("index=%d, fr: ",index);
+//	for(j = 0; j< FACE_RECOGNITION_FEATURE_DIMENSION; j++){
+//		printf("%.2f ", comm_handle.ucpf_ext.fr_feature[index][j]);
+//	}
+//	printf("\n");
+	memcpy(feature, comm_handle.ucpf_ext.fr_feature[index], FACE_RECOGNITION_FEATURE_DIMENSION*sizeof(float));
+
+	return 0;
+}
+
 int comm_device_face_get_age(int index){
 
 	LOG("comm_device_face_get_age\n");
@@ -511,7 +737,6 @@ int comm_device_isalive(){
 	ret = ucp_reply.param[2];//result
 	return ret;
 }
-
 int comm_device_isactivate(){
 	struct usb_comm_protocol ucp_reply;
 	int ret = 0;
@@ -520,6 +745,37 @@ int comm_device_isactivate(){
 	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
 	ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
 	ucp_reply.param[0] = DEVICE_IS_ACTIVATE;
+	ucp_reply.param[1] = 0;
+
+	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
+	ret = ucp_reply.param[2];//result
+	return ret;
+}
+
+int comm_device_set_facetrack_state(int mode_state){
+	struct usb_comm_protocol ucp_reply;
+	int ret = 0;
+
+	LOG("comm_device_isactivate\n");
+	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
+	ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
+	ucp_reply.param[0] = DEVICE_SET_FACETRACK_STATE;
+	ucp_reply.param[1] = 0;
+	ucp_reply.param[2] = mode_state;//0:camera stream facetrack; 1:photo facetrack;
+	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
+	ret = ucp_reply.param[2];//result
+
+	return ret;
+}
+
+int comm_device_dec_facetrack_jpeg(){
+	struct usb_comm_protocol ucp_reply;
+	int ret = 0;
+
+	LOG("comm_device_isactivate\n");
+	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
+	ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
+	ucp_reply.param[0] = DEVICE_DEC_FACETRACK_JPEG;
 	ucp_reply.param[1] = 0;
 	
 	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
@@ -559,7 +815,7 @@ int comm_device_get_face_info() {
 	struct usb_comm_protocol ucp_reply;
 	int ret = 0;
 
-	LOG("comm_device_get_face_info\n");
+//	LOG("comm_device_get_face_info\n");
 	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
 	ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
 	ucp_reply.param[0] = DEVICE_GET_FACES_INFO;
@@ -571,6 +827,26 @@ int comm_device_get_face_info() {
 		return 0;
 	
 	ret = comm_handle.ucpf.num;//result
+
+	return ret;
+}
+
+int comm_device_get_face_info_ext() {
+	struct usb_comm_protocol ucp_reply;
+	int ret = 0;
+
+//	LOG("comm_device_get_face_info\n");
+	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
+	ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
+	ucp_reply.param[0] = DEVICE_GET_FACES_INFO_EXT;
+	ucp_reply.param[1] = 0;
+
+	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &comm_handle.ucpf_ext, sizeof(struct usb_comm_protocol_f_ext));
+//	printf("%s,l:%d,ret:%d\n", __FUNCTION__, __LINE__, ret);
+	if (ret == -1)
+		return 0;
+	
+	ret = comm_handle.ucpf_ext.num;//result
 
 	return ret;
 }

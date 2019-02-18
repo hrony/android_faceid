@@ -20,6 +20,7 @@ extern "C" {
 extern "C" {
 #endif
 
+int comm_device_sendPhotoFile(char *PhotoPath);
 int comm_device_sendOtaFile(char *OtaPath);
 int comm_device_set_signature(char *sig);
 char *comm_device_get_cpuid();
@@ -46,12 +47,17 @@ int comm_device_face_get_gender(int index);
 int comm_device_get_faceid(int index);
 int* comm_device_get_face_rect(int index);
 int comm_device_get_face_num();
+int comm_device_face_get_fr_feature(int index, float *feature);
 int comm_device_unregister_faceid(int id);
 int comm_device_register_faceid(int index);
 int comm_device_exit_register_mode();
 int comm_device_enter_register_mode();
 int comm_device_isalive();
 int comm_device_isactivate();
+int comm_device_set_facetrack_state(int mode_state);
+int comm_device_dec_facetrack_jpeg();
+int comm_device_receiveFaceidDBFile(char *FaceidDBPath);
+int comm_device_sendFacedbFile(char *FaceidDBPath);
 int comm_device_release();
 int comm_device_init(void *face_detect_callback, void *body_detect_callback,
 			int pid, int vid, int fd, char *serial, int busnum, int devaddr);

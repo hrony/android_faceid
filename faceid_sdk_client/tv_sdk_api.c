@@ -22,6 +22,14 @@ int dev_isActivate(){
 	return comm_device_isactivate();
 }
 
+int dev_decoder_facetrack_jpeg(){
+	return comm_device_dec_facetrack_jpeg();
+}
+
+int dev_set_facetrack_state(int mode_state){
+	return comm_device_set_facetrack_state(mode_state);
+}
+
 int dev_enterRegisterMode(){
 	
 	return comm_device_enter_register_mode();
@@ -60,6 +68,11 @@ int dev_getFaceID(int index){
 int dev_faceGetGender(int index){
 	
 	return comm_device_face_get_gender(index);
+}
+
+int dev_faceGetFRFeature(int index, float *feature){
+
+	return comm_device_face_get_fr_feature(index, feature);
 }
 
 int dev_faceGetAge(int index){
@@ -165,6 +178,17 @@ int dev_setSignature(char *sig){
 
 int dev_sendOtaFile(char *OtaPath){
 	return comm_device_sendOtaFile(OtaPath);
+}
+
+int dev_sendPhotoFile(char *PhotoPath){
+	return comm_device_sendPhotoFile(PhotoPath);
+}
+
+int dev_receiveFaceidDBFile(char *FaceidDBPath){
+	return  comm_device_receiveFaceidDBFile(FaceidDBPath);
+}
+int dev_sendFaceidDBFile(char *FaceidDBPath){
+	return  comm_device_sendFacedbFile(FaceidDBPath);
 }
 
 int dev_isIDReg(int id){

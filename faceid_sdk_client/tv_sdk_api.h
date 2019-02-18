@@ -9,7 +9,6 @@ int dev_init(void (*face_detect_callback)(int event), void (*body_detect_callbac
 	int pid, int vid, int fd, char *serial, int busnum, int devaddr);
 int dev_release();
 int dev_isAlive();
-int dev_isActivate();
 int dev_enterRegisterMode();
 int dev_exitRegisterMode();
 int dev_registerFaceID(int index);
@@ -18,6 +17,7 @@ int dev_getFaceNum();
 int* dev_getFaceRect(int index);
 int dev_getFaceID(int index);
 int dev_faceGetGender(int index);
+int dev_faceGetFRFeature(int index, float *feature);
 int dev_faceGetAge(int index);
 int dev_faceGetEmotion(int index);
 int dev_faceGetAttention(int index);
@@ -40,8 +40,18 @@ int dev_rebootDevice();
 char *dev_getCPUID();
 int dev_setSignature(char *sig);
 int dev_sendOtaFile(char *OtaPath);
+int dev_sendPhotoFile(char *PhotoPath);
+int dev_receiveFaceidDBFile(char *FaceidDBPath);
+int dev_sendFaceidDBFile(char *FaceidDBPath);
 int dev_isIDReg(int id);
-
+int dev_isActivate();
+/*
+	mode_state: 
+		0:camera stream facetrack;
+		1:photo facetrack;
+*/
+int dev_set_facetrack_state(int mode_state);
+int dev_decoder_facetrack_jpeg();
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

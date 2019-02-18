@@ -124,6 +124,24 @@ static int com_faceid_sendOtaFile(JNIEnv *env, jobject thiz, jstring OtaPath){
 	return ret;
 }
 
+static int com_faceid_receiveFaceidDBFile(JNIEnv *env, jobject thiz, jstring FaceDBPath){
+	LOGV("com_faceid_sendOtaFile");
+	char* file = (char*) env->GetStringUTFChars(FaceDBPath, false);
+	int ret = dev_receiveFaceidDBFile(file);
+    if (file)
+	    env->ReleaseStringUTFChars(FaceDBPath, file);
+	return ret;
+}
+
+static int com_faceid_sendFaceidDBFile(JNIEnv *env, jobject thiz, jstring FaceDBPath){
+	LOGV("com_faceid_sendOtaFile");
+	char* file = (char*) env->GetStringUTFChars(FaceDBPath, false);
+	int ret = dev_sendFaceidDBFile(file);
+    if (file)
+	    env->ReleaseStringUTFChars(FaceDBPath, file);
+	return ret;
+}
+
 static jint com_faceid_activeDevice(JNIEnv *env, jobject thiz){
 	return 1;
 }
@@ -354,6 +372,8 @@ static JNINativeMethod gMethods[] = {
 	{ "native_rebootDevice", "()I", (void *)com_faceid_rebootDevice },
 	{ "native_activeDevice", "()I", (void *)com_faceid_activeDevice },
 	{ "native_sendOtaFile", "(Ljava/lang/String;)I", (void *)com_faceid_sendOtaFile },
+	{ "native_sendFaceidDBFile", "(Ljava/lang/String;)I", (void *)com_faceid_sendFaceidDBFile },
+	{ "native_receiveFaceidDBFile", "(Ljava/lang/String;)I", (void *)com_faceid_receiveFaceidDBFile },
 	{ "native_isIDReg", "(I)I", (void *)com_faceid_isIDReg },
 };
 
