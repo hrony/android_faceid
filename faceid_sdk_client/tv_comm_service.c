@@ -111,6 +111,7 @@ retry:
 				}
 				goto retry;
 			}
+			filesize = ucp_reply.param[4];//filesize 
 			printf("%s,l:%d,ret:%d, ucp_reply.param[2]:%d, ucp_reply.param[3]:%d, ucp_reply.param[4]:%d\n",\
 				__FUNCTION__, __LINE__, ret, ucp_reply.param[2], ucp_reply.param[3], ucp_reply.param[4]);
 			ret = fwrite(ucp_reply.buffer, 1, ucp_reply.param[3],file);
