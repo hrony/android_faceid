@@ -9,6 +9,7 @@ int dev_init(void (*face_detect_callback)(int event), void (*body_detect_callbac
 	int pid, int vid, int fd, char *serial, int busnum, int devaddr);
 int dev_release();
 int dev_isAlive();
+int dev_isActivate();
 int dev_enterRegisterMode();
 int dev_exitRegisterMode();
 int dev_registerFaceID(int index);
@@ -45,6 +46,7 @@ int dev_receiveFaceidDBFile(char *FaceidDBPath);
 int dev_sendFaceidDBFile(char *FaceidDBPath);
 int dev_isIDReg(int id);
 int dev_isActivate();
+int dev_reset_transfer();
 /*
 	mode_state: 
 		0:camera stream facetrack;

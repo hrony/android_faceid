@@ -53,28 +53,51 @@ int algo_device_request(void *req, int req_size, void *reply, int replay_size){
 
 	int tran_size = 0;
 	int ret = 0;
+	int count = 0;
 	struct usb_comm_protocol *p = reply;
 
 	if (!handle)
 		return -1;
 	
 	pthread_mutex_lock(&request_mutex);
-	
-	ret = libusb_bulk_transfer(handle, endpoint_out, req, req_size, &tran_size,1000);
+retry:
+	ret = libusb_bulk_transfer(handle, endpoint_out, req, req_size, &tran_size,2000);
 	if (ret != 0) {
-		LOG ("libusb_bulk_transfer endpoint_out:%d, ret:%d, tran_size:%d\n", endpoint_out,ret, tran_size);
+		LOG ("libusb_bulk_transfer hx endpoint_out:%d, ret:%d, tran_size:%d\n", endpoint_out,ret, tran_size);
 	}
-	
+
 	if (p && p->param[0] == DEVICE_GET_FACES_INFO){
-		ret = libusb_bulk_transfer(handle, endpoint_in, reply, replay_size, &tran_size, 30);
+		ret = libusb_bulk_transfer(handle, endpoint_in, reply, replay_size, &tran_size, 300);
 	} else {
-		ret = libusb_bulk_transfer(handle, endpoint_in, reply, replay_size, &tran_size, 1000);
+		ret = libusb_bulk_transfer(handle, endpoint_in, reply, replay_size, &tran_size, 2000);
 	}
-	
+//	if (ret == -7) {
+//		count++;
+//		if (count>50) {
+//			LOG ("libusb_bulk_transfer ==========dddddd======count:%d endpoint_in:%d, ret:%d, tran_size:%d\n", count, endpoint_in, ret, tran_size);
+//			pthread_mutex_unlock(&request_mutex);
+//			return ret;
+//		}
+//		goto retry;
+//	}
 	if (ret != 0){
-		LOG ("libusb_bulk_transfer endpoint_in:%d, ret:%d, tran_size:%d\n", endpoint_in, ret, tran_size);
+		LOG ("libusb_bulk_transfer hx endpoint_in:%d, ret:%d, tran_size:%d\n", endpoint_in, ret, tran_size);
 	}
 	
+	pthread_mutex_unlock(&request_mutex);
+	
+	return ret;
+}
+
+//rest host usb transfer
+int algo_libusb_reset_transfer(){
+	
+	int ret = -1;
+	if (!handle)
+		return -1;
+	pthread_mutex_lock(&request_mutex);
+	ret = libusb_clear_halt(handle,endpoint_out);
+	LOG ("algo_libusb_reset_transfer %d\n",  ret);
 	pthread_mutex_unlock(&request_mutex);
 	
 	return ret;

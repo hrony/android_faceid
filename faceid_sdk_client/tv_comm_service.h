@@ -62,6 +62,7 @@ int comm_device_release();
 int comm_device_init(void *face_detect_callback, void *body_detect_callback,
 			int pid, int vid, int fd, char *serial, int busnum, int devaddr);
 int comm_device_isIDReg(int id);
+int comm_reset_transfer();
 
 #ifdef __cplusplus
 }

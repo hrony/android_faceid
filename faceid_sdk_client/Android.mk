@@ -46,7 +46,7 @@ LOCAL_C_INCLUDES += \
   
 LOCAL_MODULE_TAGS := optional
 
-LOCAL_SHARED_LIBRARIES += libusb liblog libandroid_runtime 
+LOCAL_SHARED_LIBRARIES += libusb liblog  
 
 LOCAL_MODULE:= libfaceid
 
@@ -64,7 +64,6 @@ LOCAL_SRC_FILES:= \
     	com_faceid_api.cpp
 
 LOCAL_SHARED_LIBRARIES := \
-    libandroid_runtime \
     liblog \
 	libfaceid \
 

@@ -2,12 +2,9 @@
 #include "utils/Log.h"
 #include "utils/misc.h"
 #include "cutils/properties.h"
-#include "android_runtime/AndroidRuntime.h"
-#include "android_runtime/Log.h"
 #include "android/asset_manager.h"
 #include "android/asset_manager_jni.h"
-
-#include "jni.h"
+#include <jni.h>
 #include "JNIHelp.h"
 #include <assert.h>
 #include <string.h>
@@ -16,6 +13,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "tv_sdk_api.h"
+#include "locadefines.h"
 
 #define LOG_FLAG 1
 #ifdef LOG_FLAG
@@ -113,6 +111,10 @@ static void global_bodyDetect_callback(int event) {
 
 static jint com_faceid_isIDReg(JNIEnv *env, jobject thiz, jint id){
 	return dev_isIDReg(id);
+}
+
+static jint com_faceid_reset_transfer(JNIEnv *env, jobject thiz){
+	return dev_reset_transfer();
 }
 
 static int com_faceid_sendOtaFile(JNIEnv *env, jobject thiz, jstring OtaPath){
@@ -372,15 +374,33 @@ static JNINativeMethod gMethods[] = {
 	{ "native_rebootDevice", "()I", (void *)com_faceid_rebootDevice },
 	{ "native_activeDevice", "()I", (void *)com_faceid_activeDevice },
 	{ "native_sendOtaFile", "(Ljava/lang/String;)I", (void *)com_faceid_sendOtaFile },
-	{ "native_sendFaceidDBFile", "(Ljava/lang/String;)I", (void *)com_faceid_sendFaceidDBFile },
 	{ "native_receiveFaceidDBFile", "(Ljava/lang/String;)I", (void *)com_faceid_receiveFaceidDBFile },
+	{ "native_sendFaceidDBFile", "(Ljava/lang/String;)I", (void *)com_faceid_sendFaceidDBFile },
 	{ "native_isIDReg", "(I)I", (void *)com_faceid_isIDReg },
+	{ "native_reset_transfer", "()I", (void *)com_faceid_reset_transfer },
 };
+
+jint registerNativeMethods(JNIEnv* env, const char *class_name, JNINativeMethod *methods, int num_methods) {
+	int result = 0;
+
+	jclass clazz = env->FindClass(class_name);
+	if (LIKELY(clazz)) {
+		int result = env->RegisterNatives(clazz, methods, num_methods);
+		if (UNLIKELY(result < 0)) {
+			//LOGE("registerNativeMethods failed(class=%s)", class_name);
+		}
+	} else {
+		//LOGE("registerNativeMethods: class'%s' not found", class_name);
+	}
+	return result;
+}
+
 
 // This function only registers the native methods
 static int register_faceid_methods(JNIEnv *env) {
 
-	return AndroidRuntime::registerNativeMethods(env, ClassName, gMethods, NELEM(gMethods));
+	return registerNativeMethods(env, ClassName, gMethods, NELEM(gMethods));
+	
 
 }
 

@@ -274,28 +274,29 @@ int comm_device_sendOtaFile(char *OtaPath){
 	int ret = 0;
 	int totalsize = 0;
 	int num = 0;
+	FILE *file;
 	unsigned long filesize = 0;
 	
 	LOG("comm_device_sendOtaFile:%s\n", OtaPath);
 	memset(&ucp_reply, 0, sizeof(struct usb_comm_protocol));
-	
+
 	if (OtaPath == NULL){
         LOG("ota path is null\n");
 		return -1;
 	}
 //	if (access(OtaPath, R_OK) == 0){
-	int fd = open(OtaPath, O_RDONLY);
-	if (fd < 0) {
-        LOG("open otafile %s fail ret:%d, err:%s\n", OtaPath, fd, strerror(errno));
+	file = fopen(OtaPath, "rb");
+	if (file < 0) {
+        LOG("open otafile %s fail ret:%d\n", OtaPath, file);
 		return -2;
 	} else {
-	    lseek(fd, 0, SEEK_SET);	
+	    fseek(file, 0, SEEK_SET);	
 		filesize = get_file_size(OtaPath);
-		//文件分段传输
 		while(1){
-		    ret = read(fd, ucp_reply.buffer, DEVICE_COMM_SERVICE_CHAR_LEN);
+		    ret = fread(ucp_reply.buffer, 1, DEVICE_COMM_SERVICE_CHAR_LEN,file);
 			totalsize += ret;
 			LOG("filesize:%d, send size:%d, ret:%d\n", filesize, totalsize, ret);
+			comm_handle.face_detect_callback(totalsize);
             ucp_reply.magic = DEVICE_COMM_SERVICE_MAGIC;
 			ucp_reply.param[0] = DEVICE_OTA_FILE;
 			ucp_reply.param[1] = 3;//para num
@@ -307,14 +308,13 @@ int comm_device_sendOtaFile(char *OtaPath){
 				ucp_reply.param[4] = 0;
 			}
 retry:
-			//当前传输失败，重新传输，尝试5次
 			ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
 			if (ret < 0) {
 				num++;
 				LOG("send ota file fail,usb transfer ret:%d, retry num:%d\n", ret, num);
 				if (num > 5){
-					close(fd);
-					fd = 0;
+					fclose(file);
+					file = NULL;
 					return -1;
 				}
 				goto retry;
@@ -323,13 +323,13 @@ retry:
 			ret = ucp_reply.param[2];//result
 			if (ret < 0){
                 LOG("send ota file fail ret:%d\n", ret);
-				close(fd);
+				fclose(file);
 				return -1;
 			}
 			if (totalsize == filesize)
                 break;
 		}
-		close(fd);
+		fclose(file);
         LOG("send ota file success\n");
 	}
 
@@ -781,6 +781,7 @@ int comm_device_dec_facetrack_jpeg(){
 	
 	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
 	ret = ucp_reply.param[2];//result
+
 	return ret;
 }
 
@@ -892,6 +893,12 @@ int comm_device_get_body_info() {
 	return 0;
 }
 
+int comm_reset_transfer(){
+	int ret =-1;
+	ret = algo_libusb_reset_transfer();
+	return ret;
+}
+
 int comm_device_init(void *face_detect_callback, void *body_detect_callback,
 					int pid, int vid, int fd, char *serial, int busnum, int devaddr) {
 	struct usb_comm_protocol ucp_reply;
@@ -926,9 +933,11 @@ int comm_device_init(void *face_detect_callback, void *body_detect_callback,
 	ucp_reply.param[0] = DEVICE_INIT;
 	ucp_reply.param[1] = 0;
 
+retryinit:
+	//当前传输失败，重新传输，尝试5次
 	ret = algo_device_request(&ucp_reply, sizeof(struct usb_comm_protocol), &ucp_reply, sizeof(struct usb_comm_protocol));
 	if (ret == -1)
-		return ret;
+		goto retryinit;
 
 	ret = ucp_reply.param[2];//result
 	ret = pthread_create(&comm_handle.comm_service_thread_tid, NULL, comm_service_thread_handle, NULL);

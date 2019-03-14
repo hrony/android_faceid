@@ -3,7 +3,6 @@
 
 
 #include "utils/Log.h"
-#include "android_runtime/Log.h"
 
 #define FW_DEFAULT_MOUNT_FULLNAME   "/mnt/sdcard/Firmware.img"
 #define DEVICE_FACE_DB_ITEM_SIZE 	512

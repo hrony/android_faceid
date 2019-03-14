@@ -18,7 +18,7 @@ int dev_isAlive(){
 }
 
 int dev_isActivate(){
-	
+
 	return comm_device_isactivate();
 }
 
@@ -193,4 +193,9 @@ int dev_sendFaceidDBFile(char *FaceidDBPath){
 
 int dev_isIDReg(int id){
 	return comm_device_isIDReg(id);
+}
+
+
+int dev_reset_transfer(){
+	return comm_reset_transfer();
 }
